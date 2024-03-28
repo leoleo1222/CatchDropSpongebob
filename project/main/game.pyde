@@ -18,6 +18,21 @@ jellyfish_reached_bottom = False
 # Speed of dropping
 drop_speed = 20  # Adjust this value to change the speed of dropping
 
+# Bob's properties
+bob_image = None
+bob_x = 800  # Initial x-coordinate for Bob
+bob_y = 800  # Initial y-coordinate for Bob
+bob_speed = 20  # Speed of Bob's movement
+
+# Function to load Bob's image
+def load_bob_image():
+    global bob_image
+    bob_image = loadImage("bob.png")
+    if bob_image:
+        print("Bob's image loaded successfully.")
+    else:
+        print("Error loading Bob's image.")
+
 # Function to check if it's time to drop a jellyfish
 def check_jellyfish_drop():
     global last_jellyfish_drop
@@ -70,9 +85,21 @@ def setup():
         print("Background image loaded successfully.")
     else:
         print("Error loading background image.")
+    load_bob_image()  # Load Bob's image
+
+# Function to handle key presses
+def keyPressed():
+    global bob_x
+    if key == 'a':
+        bob_x -= bob_speed  # Move Bob left
+    elif key == 'd':
+        bob_x += bob_speed  # Move Bob right
 
 # Draw function to draw the entities
 def draw():
+    global bob_x
     image(loadImage("background.png"), 0, 0)
+    image(loadImage("bob.png"), 0, 0)  # Draw Bob at his current position
     drop_entity()
     draw_entities()
+    
