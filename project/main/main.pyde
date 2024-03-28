@@ -1,5 +1,6 @@
+# Import necessary libraries
 from random import randint
-from datetime import datetime
+from datetime import datetime, timedelta
 
 last_jellyfish_drop = datetime.now()
 last_bomb_drop = datetime.now()
@@ -18,6 +19,14 @@ bob_y = 600
 bob_speed = 20
 
 score = 0
+
+# Timer
+start_time = datetime.now()
+timer_duration = timedelta(seconds=60)
+
+# Stage and Round
+current_stage = 1
+current_round = 1
 
 def load_bob_image():
     global bob_image
@@ -49,15 +58,17 @@ def drop_entity():
     session = randint(1, 4)
     x = (session - 1) * width // 4
     y = 0
-    if check_jellyfish_drop():
-        jellyfish_x_positions.append(x)
-        jellyfish_y_positions.append(y)
-    if check_bomb_drop():
-        bomb_x_positions.append(x)
-        bomb_y_positions.append(y)
+    if current_stage == 3:  # Only drop bombs in stage 3
+        if check_bomb_drop():
+            bomb_x_positions.append(x)
+            bomb_y_positions.append(y)
+    else:
+        if check_jellyfish_drop():
+            jellyfish_x_positions.append(x)
+            jellyfish_y_positions.append(y)
 
 def draw_entities():
-    global jellyfish_reached_bottom
+    global jellyfish_reached_bottom, drop_speed
     for i in range(len(jellyfish_x_positions)):
         jellyfish_y_positions[i] += drop_speed
         if jellyfish_y_positions[i] >= 1000:
@@ -71,7 +82,7 @@ def draw_entities():
             image(loadImage("jf2.png"), jellyfish_x_positions[i], jellyfish_y_positions[i])
         else:
             image(loadImage("jf1.png"), jellyfish_x_positions[i], jellyfish_y_positions[i])
-            
+
     for i in range(len(bomb_x_positions)):
         bomb_y_positions[i] += drop_speed
         image(loadImage("bomb.png"), bomb_x_positions[i], bomb_y_positions[i])
@@ -100,17 +111,25 @@ def update_score(points):
         print("Game Over!")
         noLoop()  # Stop the game
 
+# Function to display the score
 def display_score():
-    textSize(48)
+    global start_time
+    textSize(48)  # Larger text size
     fill(255)
+    textAlign(LEFT, TOP)
+    elapsed_time = datetime.now() - start_time
+    remaining_time = timer_duration - elapsed_time
+    text("Time left: " + str(remaining_time.seconds), 10, 10)  # Display timer
     textAlign(RIGHT, TOP)
-    text("Score: " + str(score), width - 10, 10)
+    text("Score: " + str(score), width - 10, 60)  # Display score
+    textAlign(CENTER, TOP)
+    text("Round: " + str(current_round), width // 2, 10)  # Display round
 
 def check_collision():
     global score
     for i in range(len(jellyfish_x_positions)):
-        if bob_x + bob_image.width > jellyfish_x_positions[i] and bob_x < jellyfish_x_positions[i] + 100:
-            if bob_y + bob_image.height > jellyfish_y_positions[i] and bob_y < jellyfish_y_positions[i] + 100:
+        if bob_x + bob_image.width > jellyfish_x_positions[i] - 100 and bob_x < jellyfish_x_positions[i] + 355:
+            if bob_y + bob_image.height > jellyfish_y_positions[i] and bob_y < jellyfish_y_positions[i] + 400:
                 jellyfish_x_positions.pop(i)
                 jellyfish_y_positions.pop(i)
                 if score >= 30:
@@ -121,25 +140,42 @@ def check_collision():
                     update_score(5)
                 return True
     for i in range(len(bomb_x_positions)):
-        if bob_x + bob_image.width > bomb_x_positions[i] and bob_x < bomb_x_positions[i] + 100:
-            if bob_y + bob_image.height > bomb_y_positions[i] and bob_y < bomb_y_positions[i] + 100:
+        if bob_x + bob_image.width > bomb_x_positions[i] and bob_x < bomb_x_positions[i] + 220:
+            if bob_y + bob_image.height > bomb_y_positions[i] and bob_y < bomb_y_positions[i] + 220:
                 bomb_x_positions.pop(i)
                 bomb_y_positions.pop(i)
                 if score >= 30:
-                    update_score(-40)  # Double the score points lost
-                elif score >= 20:
                     update_score(-20)  # Double the score points lost
+                elif score >= 20:
+                    update_score(-10)  # Double the score points lost
                 else:
-                    update_score(-10)
+                    update_score(-3)
                 return True
     return False
 
 def draw():
-    global bob_x
+    global bob_x, current_stage, current_round, drop_speed, start_time, timer_duration
+
+    # Check if timer has reached 60 seconds
+    elapsed_time = datetime.now() - start_time
+    if elapsed_time >= timer_duration:
+        # Reset timer
+        start_time = datetime.now()
+        elapsed_time = timedelta(seconds=0)
+        
+        # Increment stage and round
+        if current_stage == 1 and score >= 10:
+            current_stage = 2
+            drop_speed += 5  # Increase drop speed for stage 2
+        elif current_stage == 2 and score >= 20:
+            current_stage = 3
+            current_round += 1
+            drop_speed += 5  # Increase drop speed for stage 3
+
     image(loadImage("background.png"), 0, 0)
     drop_entity()
     draw_entities()
     image(bob_image, bob_x, bob_y)
     if check_collision():
         return
-    display_score()
+    display_score()  # Display the score
