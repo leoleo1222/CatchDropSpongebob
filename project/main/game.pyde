@@ -16,7 +16,7 @@ bomb_y_positions = []
 jellyfish_reached_bottom = False
 
 # Speed of dropping
-drop_speed = 20  # Adjust this value to change the speed of dropping
+drop_speed = 40  # Adjust this value to change the speed of dropping
 
 # Function to check if it's time to drop a jellyfish
 def check_jellyfish_drop():
