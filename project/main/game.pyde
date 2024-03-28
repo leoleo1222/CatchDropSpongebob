@@ -2,67 +2,46 @@
 from random import randint
 from datetime import datetime
 
-# Variables to store last dropped times for jellyfish and bomb
-last_jellyfish_drop = datetime.now()
-last_bomb_drop = datetime.now()
+# Variables to store last dropped time
+last_drop = datetime.now()
 
 # Lists to store x and y coordinates of dropped items
-jellyfish_x_positions = []
-jellyfish_y_positions = []
-bomb_x_positions = []
-bomb_y_positions = []
-
-# Flag to indicate if a jellyfish has reached 1000 in the y-axis
-jellyfish_reached_bottom = False
+entities_x_positions = []
+entities_y_positions = []
 
 # Speed of dropping
 drop_speed = 40  # Adjust this value to change the speed of dropping
 
-# Function to check if it's time to drop a jellyfish
-def check_jellyfish_drop():
-    global last_jellyfish_drop
+# Function to check if it's time to drop an entity
+def check_entity_drop():
+    global last_drop
     current_time = datetime.now()
-    time_difference = current_time - last_jellyfish_drop
-    if time_difference.total_seconds() >= randint(1, 3) and len(jellyfish_y_positions) < 2 and jellyfish_reached_bottom:
-        last_jellyfish_drop = current_time
-        return True
-    return False
-
-# Function to check if it's time to drop a bomb
-def check_bomb_drop():
-    global last_bomb_drop
-    current_time = datetime.now()
-    time_difference = current_time - last_bomb_drop
+    time_difference = current_time - last_drop
     if time_difference.total_seconds() >= randint(1, 2):
-        last_bomb_drop = current_time
+        last_drop = current_time
         return True
     return False
 
-# Function to drop jellyfish or bomb in a random session
+# Function to drop an entity (either bomb or jellyfish)
 def drop_entity():
-    session = randint(1, 4)  # Randomly select one of the four sessions
-    x = (session - 1) * width // 4  # Calculate x-coordinate based on session
+    x = randint(0, width)  # Random x-coordinate within canvas width
     y = 0  # Start from the top
-    if check_jellyfish_drop():
-        if len(jellyfish_x_positions) < 2:  # Limit jellyfish to two on screen
-            jellyfish_x_positions.append(x)
-            jellyfish_y_positions.append(y)
-    if check_bomb_drop():
-        if len(bomb_x_positions) < 3:  # Limit bombs to three on screen
-            bomb_x_positions.append(x)
-            bomb_y_positions.append(y)
+    if check_entity_drop():
+        entity_type = randint(0, 1)  # 0 for bomb, 1 for jellyfish
+        entities_x_positions.append(x)
+        entities_y_positions.append(y)
+        return entity_type  # Return the type of dropped entity (0 for bomb, 1 for jellyfish)
+    return None
 
-# Function to draw jellyfish and bombs
+# Function to draw entities
 def draw_entities():
-    global jellyfish_reached_bottom
-    for i in range(len(jellyfish_x_positions)):
-        jellyfish_y_positions[i] += drop_speed  # Update y-coordinate for dropping effect
-        if jellyfish_y_positions[i] >= 1000:
-            jellyfish_reached_bottom = True
-        image(loadImage("jf{}.png".format(randint(1, 4))), jellyfish_x_positions[i], jellyfish_y_positions[i])
-    for i in range(len(bomb_x_positions)):
-        bomb_y_positions[i] += drop_speed  # Update y-coordinate for dropping effect
-        image(loadImage("bomb.png"), bomb_x_positions[i], bomb_y_positions[i])
+    for i in range(len(entities_x_positions)):
+        entities_y_positions[i] += drop_speed  # Update y-coordinate for dropping effect
+        # Draw bomb or jellyfish based on entity type
+        if i % 2 == 0:
+            image(loadImage("bomb.png"), entities_x_positions[i], entities_y_positions[i])
+        else:
+            image(loadImage("jellyfish.png"), entities_x_positions[i], entities_y_positions[i])
 
 # Setup function to initialize the canvas
 def setup():
@@ -73,8 +52,8 @@ def setup():
     else:
         print("Error loading background image.")
 
-# Draw function to draw the entities
+# Draw function to draw entities
 def draw():
     image(loadImage("background.png"), 0, 0)
-    drop_entity()
+    entity_type = drop_entity()
     draw_entities()
