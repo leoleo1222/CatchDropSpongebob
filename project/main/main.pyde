@@ -2,7 +2,7 @@
 
 # Set up the size of the canvas
 def setup():
-    size(2000, 1000)  # Set the size of the canvas to match your background image
+    size(1800, 1000)  # Set the size of the canvas to match your background image
     
     # Load the background image
     background_image = loadImage("background.png")
