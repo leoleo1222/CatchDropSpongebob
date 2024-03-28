@@ -1,9 +1,8 @@
-# Import the necessary modules
-from processing import *
+# main.pyde
 
 # Set up the size of the canvas
 def setup():
-    size(1000, 600)  # Set the size of the canvas to match your background image
+    size(2000, 1000)  # Set the size of the canvas to match your background image
     
     # Load the background image
     background_image = loadImage("background.png")
@@ -18,3 +17,6 @@ def setup():
 def draw():
     # Draw the background image
     image(loadImage("background.png"), 0, 0)
+
+# Call the game.pyde file
+exec(open("game.pyde").read())
