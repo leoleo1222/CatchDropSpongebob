@@ -49,7 +49,7 @@ def check_bomb_drop():
     global last_bomb_drop
     current_time = datetime.now()
     time_difference = current_time - last_bomb_drop
-    if time_difference.total_seconds() >= randint(5, 10):
+    if time_difference.total_seconds() >= randint(1, 5):
         last_bomb_drop = current_time
         return True
     return False
@@ -155,7 +155,7 @@ def check_collision():
     return False
 
 def draw():
-    global bob_x, current_stage, current_round, drop_speed, start_time, timer_duration
+    global bob_x, current_stage, current_round, drop_speed, start_time, timer_duration, jellyfish_reached_bottom
 
     # Check if timer has reached 60 seconds
     elapsed_time = datetime.now() - start_time
@@ -172,9 +172,11 @@ def draw():
             current_stage = 3
             current_round += 1
             drop_speed += 5  # Increase drop speed for stage 3
+            
+        # Reset jellyfish_reached_bottom flag
+        jellyfish_reached_bottom = False
 
     image(loadImage("background.png"), 0, 0)
-    print(jellyfish_reached_bottom)
     
     drop_entity()
     draw_entities()
