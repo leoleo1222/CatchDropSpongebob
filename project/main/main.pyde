@@ -49,7 +49,7 @@ def check_bomb_drop():
     global last_bomb_drop
     current_time = datetime.now()
     time_difference = current_time - last_bomb_drop
-    if time_difference.total_seconds() >= randint(1, 10):
+    if time_difference.total_seconds() >= randint(5, 10):
         last_bomb_drop = current_time
         return True
     return False
@@ -88,6 +88,7 @@ def draw_entities():
         image(loadImage("bomb.png"), bomb_x_positions[i], bomb_y_positions[i])
 
 def setup():
+    frameRate(30);
     size(1800, 1000)
     background_image = loadImage("background.png")
     if background_image:
@@ -123,7 +124,7 @@ def display_score():
     textAlign(RIGHT, TOP)
     text("Score: " + str(score), width - 10, 60)  # Display score
     textAlign(CENTER, TOP)
-    text("Round: " + str(current_round), width // 2, 10)  # Display round
+    text("Stage: " + str(current_round), width // 2, 10)  # Display round
 
 def check_collision():
     global score
@@ -173,6 +174,8 @@ def draw():
             drop_speed += 5  # Increase drop speed for stage 3
 
     image(loadImage("background.png"), 0, 0)
+    print(jellyfish_reached_bottom)
+    
     drop_entity()
     draw_entities()
     image(bob_image, bob_x, bob_y)
