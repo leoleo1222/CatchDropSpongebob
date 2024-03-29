@@ -5,6 +5,10 @@ from datetime import datetime, timedelta
 last_jellyfish_drop = datetime.now()
 last_bomb_drop = datetime.now()
 
+# Define variables for UI element
+stage_notification = ""
+notification_timer = 0
+
 jellyfish_x_positions = []
 jellyfish_y_positions = []
 bomb_x_positions = []
@@ -22,11 +26,11 @@ score = 0
 
 # Timer
 start_time = datetime.now()
-timer_duration = timedelta(seconds=60)
+timer_duration = timedelta(seconds=10)
 
 # Stage and Round
 current_stage = 1
-current_round = 1
+current_stage = 1
 
 def load_bob_image():
     global bob_image
@@ -124,7 +128,7 @@ def display_score():
     textAlign(RIGHT, TOP)
     text("Score: " + str(score), width - 10, 60)  # Display score
     textAlign(CENTER, TOP)
-    text("Stage: " + str(current_round), width // 2, 10)  # Display round
+    text("Stage: " + str(current_stage), width // 2, 10)  # Display round
 
 def check_collision():
     global score
@@ -155,7 +159,7 @@ def check_collision():
     return False
 
 def draw():
-    global bob_x, current_stage, current_round, drop_speed, start_time, timer_duration, jellyfish_reached_bottom
+    global bob_x, current_stage, current_stage, drop_speed, start_time, timer_duration, jellyfish_reached_bottom, stage_notification, notification_timer
 
     # Check if timer has reached 60 seconds
     elapsed_time = datetime.now() - start_time
@@ -168,15 +172,17 @@ def draw():
         if current_stage == 1 and score >= 10:
             current_stage = 2
             drop_speed += 5  # Increase drop speed for stage 2
+            stage_notification = "Stage 2 reached!"
+            notification_timer = 10  # Display notification for 120 frames
         elif current_stage == 2 and score >= 20:
             current_stage = 3
             current_round += 1
             drop_speed += 5  # Increase drop speed for stage 3
-            
-        # Reset jellyfish_reached_bottom flag
-        jellyfish_reached_bottom = False
+            stage_notification = "Stage 3 reached!"
+            notification_timer = 10  # Display notification for 120 frames
 
     image(loadImage("background.png"), 0, 0)
+    print(jellyfish_reached_bottom)
     
     drop_entity()
     draw_entities()
@@ -184,3 +190,11 @@ def draw():
     if check_collision():
         return
     display_score()  # Display the score
+    
+    # Display stage change notification
+    if notification_timer > 0:
+        textSize(64)
+        fill(255)
+        textAlign(CENTER, CENTER)
+        text(stage_notification, width // 2, height // 2)
+        notification_timer -= 1
