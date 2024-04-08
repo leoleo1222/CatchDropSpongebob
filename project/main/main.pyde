@@ -35,7 +35,6 @@ randomInterval = 0
 def setup():
     size(1800, 1000)
     background_image = loadImage("background.png")
-        bob_x += bob_speed
     global startTime, bobImage, randomInterval
     startTime = millis()  # Get the current time when the game starts
     bobImage = loadImage("bob.png")  # Load the image for Bob
