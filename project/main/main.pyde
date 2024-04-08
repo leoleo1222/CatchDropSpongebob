@@ -1,200 +1,210 @@
-# Import necessary libraries
-from random import randint
-from datetime import datetime, timedelta
+# Importing the Processing library
+from processing import *
 
-last_jellyfish_drop = datetime.now()
-last_bomb_drop = datetime.now()
+# Variable to keep track of the current page
+currentPage = 1
 
-# Define variables for UI element
-stage_notification = ""
-notification_timer = 0
-
-jellyfish_x_positions = []
-jellyfish_y_positions = []
-bomb_x_positions = []
-bomb_y_positions = []
-
-jellyfish_reached_bottom = False
-drop_speed = 20
-
-bob_image = None
-bob_x = 800
-bob_y = 600
-bob_speed = 20
-
+# Variable to keep track of the score
 score = 0
 
-# Timer
-start_time = datetime.now()
-timer_duration = timedelta(seconds=10)
+# Variable to keep track of the remaining time
+remainingTime = 20  # Example: 60 seconds
 
-# Stage and Round
-current_stage = 1
-current_stage = 1
+# Variable to store the time when the game started
+startTime = 0
 
-def load_bob_image():
-    global bob_image
-    bob_image = loadImage("bob.png")
-    if bob_image:
-        print("Bob's image loaded successfully.")
-    else:
-        print("Error loading Bob's image.")
+# Variable to store the score when the game is over
+finalScore = 0
 
-def check_jellyfish_drop():
-    global last_jellyfish_drop
-    current_time = datetime.now()
-    time_difference = current_time - last_jellyfish_drop
-    if time_difference.total_seconds() >= randint(1, 5):
-        last_jellyfish_drop = current_time
-        return True
-    return False
+# Position variables for Bob
+bobWidth = 342
+bobHeight = 377
+bobX = 900
+bobY = 600
+bobImage = None  # Placeholder for the Bob image
 
-def check_bomb_drop():
-    global last_bomb_drop
-    current_time = datetime.now()
-    time_difference = current_time - last_bomb_drop
-    if time_difference.total_seconds() >= randint(1, 5):
-        last_bomb_drop = current_time
-        return True
-    return False
+jellyfishes = []  # List to store jellyfishes: [image, x, y]
+jellyfishImages = []
+jellyfishSpeed = 10  # Speed of jellyfish falling
 
-def drop_entity():
-    session = randint(1, 4)
-    x = (session - 1) * width // 4
-    y = 0
-    if current_stage == 3:  # Only drop bombs in stage 3
-        if check_bomb_drop():
-            bomb_x_positions.append(x)
-            bomb_y_positions.append(y)
-    else:
-        if check_jellyfish_drop():
-            jellyfish_x_positions.append(x)
-            jellyfish_y_positions.append(y)
-
-def draw_entities():
-    global jellyfish_reached_bottom, drop_speed
-    for i in range(len(jellyfish_x_positions)):
-        jellyfish_y_positions[i] += drop_speed
-        if jellyfish_y_positions[i] >= 1000:
-            jellyfish_reached_bottom = True
-        # Changing jellyfish image based on the score
-        if score >= 30:
-            image(loadImage("jf4.png"), jellyfish_x_positions[i], jellyfish_y_positions[i])
-        elif score >= 20:
-            image(loadImage("jf3.png"), jellyfish_x_positions[i], jellyfish_y_positions[i])
-        elif score >= 10:
-            image(loadImage("jf2.png"), jellyfish_x_positions[i], jellyfish_y_positions[i])
-        else:
-            image(loadImage("jf1.png"), jellyfish_x_positions[i], jellyfish_y_positions[i])
-
-    for i in range(len(bomb_x_positions)):
-        bomb_y_positions[i] += drop_speed
-        image(loadImage("bomb.png"), bomb_x_positions[i], bomb_y_positions[i])
+# Variable to store the time when a new jellyfish should be generated
+nextJellyfishTime = 0
+# Variable to store the random interval between jellyfish generations (in milliseconds)
+randomInterval = 0
 
 def setup():
-    frameRate(30);
     size(1800, 1000)
     background_image = loadImage("background.png")
-    if background_image:
-        print("Background image loaded successfully.")
-    else:
-        print("Error loading background image.")
-    load_bob_image()
-
-def keyPressed():
-    global bob_x
-    if key == 'a':
-        bob_x -= bob_speed
-    elif key == 'd':
         bob_x += bob_speed
-
-def update_score(points):
-    global score
-    score += points
-    if score <= 0:  # Check if score goes below 0
-        score = 0
-        print("Game Over!")
-        noLoop()  # Stop the game
-
-# Function to display the score
-def display_score():
-    global start_time
-    textSize(48)  # Larger text size
-    fill(255)
-    textAlign(LEFT, TOP)
-    elapsed_time = datetime.now() - start_time
-    remaining_time = timer_duration - elapsed_time
-    text("Time left: " + str(remaining_time.seconds), 10, 10)  # Display timer
-    textAlign(RIGHT, TOP)
-    text("Score: " + str(score), width - 10, 60)  # Display score
-    textAlign(CENTER, TOP)
-    text("Stage: " + str(current_stage), width // 2, 10)  # Display round
-
-def check_collision():
-    global score
-    for i in range(len(jellyfish_x_positions)):
-        if bob_x + bob_image.width > jellyfish_x_positions[i] - 100 and bob_x < jellyfish_x_positions[i] + 355:
-            if bob_y + bob_image.height > jellyfish_y_positions[i] and bob_y < jellyfish_y_positions[i] + 400:
-                jellyfish_x_positions.pop(i)
-                jellyfish_y_positions.pop(i)
-                if score >= 30:
-                    update_score(20)  # Double the score points earned
-                elif score >= 20:
-                    update_score(10)  # Double the score points earned
-                else:
-                    update_score(5)
-                return True
-    for i in range(len(bomb_x_positions)):
-        if bob_x + bob_image.width > bomb_x_positions[i] and bob_x < bomb_x_positions[i] + 220:
-            if bob_y + bob_image.height > bomb_y_positions[i] and bob_y < bomb_y_positions[i] + 220:
-                bomb_x_positions.pop(i)
-                bomb_y_positions.pop(i)
-                if score >= 30:
-                    update_score(-20)  # Double the score points lost
-                elif score >= 20:
-                    update_score(-10)  # Double the score points lost
-                else:
-                    update_score(-3)
-                return True
-    return False
+    global startTime, bobImage, randomInterval
+    startTime = millis()  # Get the current time when the game starts
+    bobImage = loadImage("bob.png")  # Load the image for Bob
+    jellyfishImages.append(loadImage("jf1.png"))
+    jellyfishImages.append(loadImage("jf2.png"))
+    jellyfishImages.append(loadImage("jf3.png"))
+    jellyfishImages.append(loadImage("jf4.png"))
+    generateJellyfishes()
+    randomInterval = int(random(750, 1650))  # Generate a random interval (Fine-tuning QAQ)
+    print("Finish loading the setup()")
 
 def draw():
-    global bob_x, current_stage, current_stage, drop_speed, start_time, timer_duration, jellyfish_reached_bottom, stage_notification, notification_timer
-
-    # Check if timer has reached 60 seconds
-    elapsed_time = datetime.now() - start_time
-    if elapsed_time >= timer_duration:
-        # Reset timer
-        start_time = datetime.now()
-        elapsed_time = timedelta(seconds=0)
-        
-        # Increment stage and round
-        if current_stage == 1 and score >= 10:
-            current_stage = 2
-            drop_speed += 5  # Increase drop speed for stage 2
-            stage_notification = "Stage 2 reached!"
-            notification_timer = 10  # Display notification for 120 frames
-        elif current_stage == 2 and score >= 20:
-            current_stage = 3
-            current_round += 1
-            drop_speed += 5  # Increase drop speed for stage 3
-            stage_notification = "Stage 3 reached!"
-            notification_timer = 10  # Display notification for 120 frames
-
+    global currentPage, bobX, bobY, score, finalScore, nextJellyfishTime
     image(loadImage("background.png"), 0, 0)
-    print(jellyfish_reached_bottom)
+    if currentPage == 1:
+        drawWelcomePage()
+    elif currentPage >= 2:
+        drawGamePage()
+        drawJellyfishes()
+        moveJellyfishes()
+        bobX = mouseX - bobWidth / 2 
+        checkCollision()  # Check for collision with jellyfishes
+        if millis() > nextJellyfishTime:
+            generateJellyfish()
+            nextJellyfishTime = millis() + randomInterval
+
+def drawWelcomePage():
+    # Display welcome message and start button
+    textAlign(CENTER)
+    textSize(60)
+    fill(0)
+    text("Welcome to Catch-and-Drop Game", width/2, height*0.3)
     
-    drop_entity()
-    draw_entities()
-    image(bob_image, bob_x, bob_y)
-    if check_collision():
-        return
-    display_score()  # Display the score
+    textSize(50)
+    fill(0)
+    text("Press any key to start!", width/2, height*0.7)
     
-    # Display stage change notification
-    if notification_timer > 0:
-        textSize(64)
+def drawGamePage():
+    global score, remainingTime, currentPage
+    # Implement gameplay for each stage
+    # Example: Display current score and remaining time
+        
+    if currentPage < 5:
+        textSize(40)
+        fill(0)
+        text("Score: " + str(score), 100, 40)
+        text("Time: " + str(remainingTime), 100, 100)  # Display time at the top right corner
+        text("Current Stage: " + str(currentPage - 1), width/2, 100)
+
+        # Update the remaining time based on elapsed time
+        elapsedSeconds = (millis() - startTime) // 1000
+        remainingTime = max(0, 20 - elapsedSeconds)  # Countdown from 60 seconds
+    
+    if remainingTime == 0 and currentPage < 5:
+        # If time runs out, increment the phase and reset game parameters
+        currentPage += 1
+        showSpeedUpText
+        resetGame()
+    
+    if currentPage == 5:
+        # Display game over message, final score, and restart button
+        textAlign(CENTER)
+        textSize(20)
+        fill(0)
+        text("Game Over", width/2, height/2 - 20)
+        text("Your Score: " + str(finalScore), width/2, height/2 + 20)  # Display the stored final score
+        rectMode(CENTER)
+        fill(200, 100, 100)
+        rect(width/2, height/2 + 100, 120, 50)
         fill(255)
-        textAlign(CENTER, CENTER)
-        text(stage_notification, width // 2, height // 2)
-        notification_timer -= 1
+        text("Restart", width/2, height/2 + 110)
+    
+    # for _ in range(5):
+    #         fill(255, 0, 0)  # Red color for "SPEED UP" text
+    #         text("!!! SPEED UP !!!", width/2, height/2 - 20)
+    #         delay(500)  # Delay for 0.5 seconds
+    #         fill(255)
+    #         text("!!! SPEED UP !!!", width/2, height/2 - 20)
+    #         delay(500)  # Delay for 0.5 seconds
+    
+    # Draw Bob
+    image(bobImage, bobX, bobY, bobWidth, bobHeight)  # Draw Bob using the loaded image
+
+# def drawGameOverPage():
+#     global finalScore
+#     # Display game over message, final score, and restart button
+#     textAlign(CENTER)
+#     textSize(60)
+#     fill(0)
+#     text("Game Over", width/2, height/3 - 20)
+#     text("Your Score: " + str(finalScore), width/2, height/2)  # Display the stored final score
+#     rectMode(CENTER)
+#     textSize(40)
+#     fill(200, 100, 100)
+#     rect(width/2, height/2 + 100, 120, 50)
+#     fill(255)
+#     text("Restart", width/2, height/2 + 110)
+    
+def generateJellyfishes():
+    global jellyfishes
+    jellyfishes = []
+    for _ in range(3):  # initially juse spawn 3
+        generateJellyfish()
+
+def generateJellyfish():
+    global jellyfishes, currentPage
+    if currentPage <= 5:
+        # Randomly choose a jellyfish image
+        jellyfishImage = jellyfishImages[int(random(len(jellyfishImages)))]
+        # Resize jellyfish image to width 200
+        jellyfishImage.resize(200, 0)
+        # Randomly choose x-coordinate within the specified range (100, 1500)
+        jellyfishX = int(random(100, 1500))
+        # Ensure new jellyfish is at least 100 pixels away from the previous one horizontally
+        while jellyfishes and abs(jellyfishX - jellyfishes[-1]["x"]) < 100:
+            jellyfishX = int(random(100, 1500))
+        # Add jellyfish to the list
+        jellyfishes.append({"image": jellyfishImage, "x": jellyfishX, "y": 50})
+
+
+def drawJellyfishes():
+    global jellyfishes
+    for jellyfish in jellyfishes:
+        image(jellyfish["image"], jellyfish["x"], jellyfish["y"])  # Draw jellyfish image
+
+def moveJellyfishes():
+    global jellyfishes, jellyfishSpeed
+    if currentPage < 5:
+        for jellyfish in jellyfishes:
+            jellyfish["y"] += jellyfishSpeed  # Move jellyfish down slowly
+
+def checkCollision():
+    global score
+    for jellyfish in jellyfishes:
+        # Check if Bob's bounding box intersects with jellyfish's bounding box
+        if (bobX < jellyfish["x"] + jellyfish["image"].width and
+            bobX + bobWidth > jellyfish["x"] and
+            bobY < jellyfish["y"] + jellyfish["image"].height and
+            bobY + bobHeight > jellyfish["y"]):
+            # Collision detected
+            if jellyfish["image"] == jellyfishImages[0]:  # jf1 (pink)
+                score += 4
+            elif jellyfish["image"] == jellyfishImages[1]:  # jf2 (brown)
+                score += 3
+            elif jellyfish["image"] == jellyfishImages[2]:  # jf3 (green)
+                score += 1
+            elif jellyfish["image"] == jellyfishImages[3]:  # jf4 (purple)
+                score += 2
+            jellyfishes.remove(jellyfish)  # Remove jellyfish from the list
+
+
+def resetGame():
+    global score, bobX, bobY, jellyfishes, remainingTime, jellyfishSpeed, nextJellyfishTime, startTime, currentStage
+    remainingTime = 20
+    jellyfishSpeed = jellyfishSpeed + 15  # Increase jellyfish speed for the next stage
+    nextJellyfishTime = millis() + randomInterval
+    # generateJellyfishes()
+    startTime = millis()
+    
+def showSpeedUpText():
+    textSize(40)
+    fill(255, 0, 0)  # Red color for "SPEED UP" text
+    text("!!! SPEED UP !!!", width/2, height/2 - 20)
+    delay(500)  # Delay for 0.5 seconds
+    fill(255)
+    text("!!! SPEED UP !!!", width/2, height/2 - 20)
+
+def keyPressed():
+    global currentPage, score, finalScore
+    if currentPage == 5:
+        score = 0  # Reset the score when restarting the game
+    currentPage = 2  # Start the game when any key is pressed
